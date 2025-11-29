@@ -17,6 +17,8 @@ interface AppContextType {
   addStudent: (student: Student) => void;
   deleteStudent: (id: string) => void;
   addAssignment: (assignment: Assignment) => void;
+  updateAssignment: (assignment: Assignment) => void;
+  deleteAssignment: (id: string) => void;
   updateGrade: (grade: Grade) => void;
   updateAttendance: (record: AttendanceRecord) => void;
   addSnippet: (snippet: Snippet) => void;
@@ -45,9 +47,9 @@ const INITIAL_STUDENTS: Student[] = [
 ];
 
 const INITIAL_ASSIGNMENTS: Assignment[] = [
-  { id: 'a1', classId: 'c1', title: 'Unit 1: Java Basics', maxPoints: 100, date: '2023-09-15' },
-  { id: 'a2', classId: 'c1', title: 'Unit 2: Objects', maxPoints: 50, date: '2023-10-01' },
-  { id: 'a3', classId: 'c2', title: 'Python Loops', maxPoints: 20, date: '2023-09-20' },
+  { id: 'a1', classId: 'c1', title: 'Unit 1: Java Basics', maxPoints: 100, date: '2023-09-15', completed: true },
+  { id: 'a2', classId: 'c1', title: 'Unit 2: Objects', maxPoints: 50, date: '2023-10-01', completed: false },
+  { id: 'a3', classId: 'c2', title: 'Python Loops', maxPoints: 20, date: '2023-09-20', completed: true },
 ];
 
 const INITIAL_GRADES: Grade[] = [
@@ -126,6 +128,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   
   const addAssignment = (assignment: Assignment) => setAssignments([...assignments, { ...assignment, id: generateId() }]);
   
+  const updateAssignment = (updated: Assignment) => {
+    setAssignments(prev => prev.map(a => a.id === updated.id ? updated : a));
+  };
+
+  const deleteAssignment = (id: string) => {
+    setAssignments(prev => prev.filter(a => a.id !== id));
+    // Cleanup associated grades
+    setGrades(prev => prev.filter(g => g.assignmentId !== id));
+  };
+  
   const updateGrade = (newGrade: Grade) => {
     setGrades(prev => {
       const existing = prev.find(g => g.studentId === newGrade.studentId && g.assignmentId === newGrade.assignmentId);
@@ -160,7 +172,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider value={{
       currentView, setCurrentView,
       classes, students, assignments, grades, attendance, snippets, todos,
-      addClass, deleteClass, addStudent, deleteStudent, addAssignment,
+      addClass, deleteClass, addStudent, deleteStudent, 
+      addAssignment, updateAssignment, deleteAssignment,
       updateGrade, updateAttendance, addSnippet, deleteSnippet,
       toggleTodo, addTodo, deleteTodo
     }}>

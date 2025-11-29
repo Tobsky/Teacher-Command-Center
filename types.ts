@@ -18,6 +18,7 @@ export interface Assignment {
   title: string;
   maxPoints: number;
   date: string;
+  completed: boolean;
 }
 
 export interface Grade {

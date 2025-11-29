@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { CheckSquare, Clock, GraduationCap, Plus, Trash2 } from 'lucide-react';
 import { AppView } from '../types';
+import PerformanceChart from './PerformanceChart';
 
 const Dashboard: React.FC = () => {
   const { todos, toggleTodo, addTodo, deleteTodo, setCurrentView, classes, assignments, grades } = useAppContext();
@@ -16,13 +17,33 @@ const Dashboard: React.FC = () => {
   };
 
   const pendingGradingCount = assignments.reduce((acc, assign) => {
-    // This is a simplification. Real logic would check student submissions.
-    // Here we just count assignments that don't have grades for all students in that class.
+    // A simplified check: just counting assignments that might need attention
     return acc + 1; 
   }, 0);
 
   // Calculate today's attendance summary (mock logic for "Today")
   const today = new Date().toISOString().split('T')[0];
+
+  // --- Prepare Data for Chart ---
+  // Sort assignments by date
+  const sortedAssignments = [...assignments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  // Calculate average grade for each assignment across all students
+  const chartData = sortedAssignments.map(assign => {
+    const assignGrades = grades.filter(g => g.assignmentId === assign.id);
+    const totalPoints = assignGrades.reduce((acc, curr) => acc + curr.score, 0);
+    const count = assignGrades.length;
+    
+    // Normalize to percentage
+    const avgScore = count > 0 ? (totalPoints / count) : 0;
+    const percentage = assign.maxPoints > 0 ? (avgScore / assign.maxPoints) * 100 : 0;
+
+    return {
+      label: new Date(assign.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      value: parseFloat(percentage.toFixed(1)),
+      subLabel: assign.title
+    };
+  }).filter(d => d.value > 0); // Only show assignments with grades
   
   return (
     <div className="space-y-6">
@@ -127,7 +148,16 @@ const Dashboard: React.FC = () => {
             </button>
           </form>
         </div>
+      </div>
 
+      {/* Class Performance Infographic */}
+      <div className="mt-6">
+        <PerformanceChart 
+          data={chartData} 
+          title="Global Class Performance" 
+          subtitle="Average assignment scores over time across all classes."
+          color="#818cf8" // Indigo-400
+        />
       </div>
     </div>
   );
