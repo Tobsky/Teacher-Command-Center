@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Plus, X, User, Edit2, Trash2, CheckCircle } from 'lucide-react';
+import { Plus, X, User, Edit2, Trash2, CheckCircle, Download } from 'lucide-react';
 import PerformanceChart from './PerformanceChart';
 import { Student, Assignment } from '../types';
 
@@ -24,6 +24,7 @@ const Gradebook: React.FC = () => {
 
   const activeStudents = students.filter(s => s.classId === selectedClassId);
   const activeAssignments = assignments.filter(a => a.classId === selectedClassId);
+  const activeClass = classes.find(c => c.id === selectedClassId);
 
   const getStudentGrade = (studentId: string, assignmentId: string) => {
     return grades.find(g => g.studentId === studentId && g.assignmentId === assignmentId)?.score || '';
@@ -97,6 +98,64 @@ const Gradebook: React.FC = () => {
     }
   };
 
+  const handleExportCSV = () => {
+    if (!activeClass) return;
+
+    // 1. Prepare Headers
+    const csvHeaders = [
+      'Student Name',
+      'Student ID',
+      'Email',
+      ...activeAssignments.map(a => `${a.title} (${a.maxPoints} pts)`),
+      'Average (%)'
+    ];
+
+    // 2. Prepare Rows
+    const csvRows = activeStudents.map(student => {
+      const studentGrades = activeAssignments.map(a => {
+        const grade = grades.find(g => g.studentId === student.id && g.assignmentId === a.id);
+        return grade ? grade.score : '';
+      });
+      const avg = calculateAverage(student.id);
+      
+      return [
+        student.name,
+        student.id,
+        student.email,
+        ...studentGrades,
+        avg
+      ];
+    });
+
+    // 3. Construct CSV String
+    // Helper to escape CSV values (wrap in quotes if contains comma)
+    const escapeCsv = (val: string | number) => {
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const csvContent = [
+      csvHeaders.map(escapeCsv).join(','),
+      ...csvRows.map(row => row.map(escapeCsv).join(','))
+    ].join('\n');
+
+    // 4. Trigger Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${activeClass.name.replace(/\s+/g, '_')}_Grades.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   // Helper to generate chart data for selected student
   const getStudentPerformanceData = () => {
     if (!selectedStudent) return [];
@@ -135,6 +194,15 @@ const Gradebook: React.FC = () => {
           >
             {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
+          
+          <button 
+            onClick={handleExportCSV}
+            className="bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+            title="Export as CSV"
+          >
+            <Download size={16} /> Export
+          </button>
+
           <button 
             onClick={() => setShowAddAssign(!showAddAssign)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"

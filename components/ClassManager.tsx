@@ -39,9 +39,9 @@ const ClassManager: React.FC = () => {
   const classStudents = students.filter(s => s.classId === selectedClassId);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex gap-6">
+    <div className="flex flex-col md:flex-row gap-6 md:h-[calc(100vh-4rem)] h-auto">
       {/* Left Column: Class List */}
-      <div className="w-1/3 flex flex-col">
+      <div className="w-full md:w-1/3 flex flex-col h-96 md:h-full shrink-0">
         <h2 className="text-2xl font-bold text-white mb-4">Classes</h2>
         
         <div className="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col">
@@ -80,7 +80,7 @@ const ClassManager: React.FC = () => {
             <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Add New Class</h4>
             <form onSubmit={handleCreateClass} className="space-y-2">
               <input 
-                placeholder="Class Name (e.g. AP CSA)" 
+                placeholder="Class Name" 
                 value={newClassName}
                 onChange={e => setNewClassName(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:border-blue-500 outline-none"
@@ -108,9 +108,9 @@ const ClassManager: React.FC = () => {
       </div>
 
       {/* Right Column: Student Roster */}
-      <div className="w-2/3 flex flex-col">
-        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-          <span className="text-slate-500">Roster:</span>
+      <div className="w-full md:w-2/3 flex flex-col h-[600px] md:h-full">
+        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2 truncate">
+          <span className="text-slate-500 hidden sm:inline">Roster:</span>
           {activeClass ? activeClass.name : 'Select a Class'}
         </h2>
 
@@ -120,21 +120,22 @@ const ClassManager: React.FC = () => {
               <h3 className="text-sm font-semibold text-slate-300">Student List ({classStudents.length})</h3>
             </div>
             
-            <div className="flex-1 overflow-y-auto">
-              <table className="w-full text-left text-sm text-slate-400">
+            <div className="flex-1 overflow-y-auto overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-400 min-w-[300px]">
                 <thead className="bg-slate-900/50 text-xs uppercase font-medium text-slate-500">
                   <tr>
-                    <th className="px-6 py-3">Name</th>
-                    <th className="px-6 py-3">Email</th>
-                    <th className="px-6 py-3 text-right">Actions</th>
+                    <th className="px-4 md:px-6 py-3">Name</th>
+                    <th className="px-4 md:px-6 py-3">Email</th>
+                    <th className="px-4 md:px-6 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/50">
                   {classStudents.length > 0 ? classStudents.map(student => (
                     <tr key={student.id} className="hover:bg-slate-700/30">
-                      <td className="px-6 py-3 font-medium text-slate-200">{student.name}</td>
-                      <td className="px-6 py-3 font-mono text-xs">{student.email}</td>
-                      <td className="px-6 py-3 text-right">
+                      <td className="px-4 md:px-6 py-3 font-medium text-slate-200">{student.name}</td>
+                      <td className="px-4 md:px-6 py-3 font-mono text-xs hidden sm:table-cell">{student.email}</td>
+                      <td className="px-4 md:px-6 py-3 font-mono text-xs sm:hidden block truncate max-w-[120px]">{student.email}</td>
+                      <td className="px-4 md:px-6 py-3 text-right">
                         <button 
                           onClick={() => deleteStudent(student.id)}
                           className="text-slate-600 hover:text-red-400 transition-colors"
@@ -155,7 +156,7 @@ const ClassManager: React.FC = () => {
             </div>
 
             <div className="p-4 bg-slate-900/50 border-t border-slate-700">
-              <form onSubmit={handleAddStudent} className="flex gap-3 items-end">
+              <form onSubmit={handleAddStudent} className="flex flex-col sm:flex-row gap-3 sm:items-end">
                 <div className="flex-1">
                   <label className="block text-xs text-slate-500 mb-1">Student Name</label>
                   <input 
@@ -174,8 +175,8 @@ const ClassManager: React.FC = () => {
                     placeholder="john@example.com"
                   />
                 </div>
-                <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2">
-                  <Plus size={16} /> Add Student
+                <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium flex items-center justify-center gap-2">
+                  <Plus size={16} /> <span className="sm:hidden">Add</span> <span className="hidden sm:inline">Add Student</span>
                 </button>
               </form>
             </div>
